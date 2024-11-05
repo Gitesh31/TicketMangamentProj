@@ -11,7 +11,6 @@ def addShows():
     movie = input("Enter the movie name: ")
     timeslot = input("Enter a timeslot: ")
     shows.loc[len(shows)] = [movie,timeslot,availableSeats,totalSeats]
-    shows.to_csv('shows.csv',index=False)
     print(f"Show for {movie} at timeslot {timeslot} is added.")
 
 def showMovies():
@@ -81,7 +80,8 @@ def main():
             print("3. Book Tickets")
             print("4. Cancel Tickets")
             print("5. Delete Shows")
-            print("6. Exit")
+            print("6. Save DataFrame as CSV")
+            print("7. Exit")
             selectedChoice = input("Enter your choice: ").strip().lower()
             if selectedChoice == "1" or selectedChoice == "add shows":
                 addShows()
@@ -93,6 +93,8 @@ def main():
                 cancelTickets()
             elif selectedChoice == "5" or selectedChoice == "delete shows":
                 deleteShows()
+            elif selectedChoice == "6" or selectedChoice == "save dataframe ad csv":
+                shows.to_csv("shows.csv",index=False)
             else:
                 confirm = input("\n\nDo you want to exit the program: ").strip().lower()
                 if confirm == 'yes' or confirm == 'y':
