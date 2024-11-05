@@ -39,17 +39,17 @@ def bookTickets():
         timeslot = input("Which timeslot do you want to book ticket for: ").strip().lower()
         timeslotSelected = shows.loc[shows['Timeslot'] == timeslot]
         if not timeslotSelected.empty:
-            BookedSeats = int(input("How many Seats do you want to book ticket for: "))
-            if not (timeslotSelected.loc[timeslotSelected['Available Seats'] > BookedSeats]).empty and availableSeats > BookedSeats:
-                availableSeats = availableSeats - BookedSeats
+            bookedSeats = int(input("How many Seats do you want to book ticket for: "))
+            if not (timeslotSelected.loc[timeslotSelected['Available Seats'] > bookedSeats]).empty and availableSeats > bookedSeats:
+                availableSeats = availableSeats - bookedSeats
                 timeslotSelected.loc[:,'Available Seats'] = availableSeats
                 shows.loc[(shows['Movies'] == movie) & (shows['Timeslot'] == timeslot), 'Available Seats'] = availableSeats
                 shows.to_csv("shows.csv", index=False)
-                print(f"{BookedSeats} Ticket(s) has been successfully booked for movie \"{movie}\" at timeslot {timeslot}.")
+                print(f"{bookedSeats} Ticket(s) has been successfully booked for movie \"{movie}\" at timeslot {timeslot}.")
             elif availableSeats == 0:
                 print(f"No Tickets Available for {movie} at timeslot {timeslot}.")
             else:
-                print(f"{BookedSeats} Seats are not Available for {movie} for selected timeslot {timeslot}.")
+                print(f"{bookedSeats} Seats are not Available for {movie} for selected timeslot {timeslot}.")
         else:
             print(f"Selected timeslot {timeslot} for {movie} is currently not available.")
     else:
@@ -61,13 +61,13 @@ def cancelTickets():
     movie = input("Which movie do you want to cancel tickets for: ").strip().lower()
     timeslot = input(f"Which timeslot for {movie} you want to cancel ticket for: ").strip().lower()
     selectedShow = shows.loc[(shows['Movies'] == movie) & (shows['Timeslot'] == timeslot)]
-    CancelledSeats = int(input("How many Tickets do you want to cancel: "))
-    if not selectedShow.empty and availableSeats > CancelledSeats:
-        availableSeats = availableSeats + CancelledSeats
+    cancelledSeats = int(input("How many Tickets do you want to cancel: "))
+    if not selectedShow.empty and availableSeats > cancelledSeats:
+        availableSeats = availableSeats + cancelledSeats
         shows.loc[(shows['Movies'] == movie) & (shows['Timeslot'] == timeslot), 'Available Seats'] = availableSeats
         shows.to_csv("shows.csv", index=False)
-        print(f"Cancelled {CancelledSeats} Ticket(s) for {movie} at timeslot {timeslot}.")
-    elif CancelledSeats > availableSeats:
+        print(f"Cancelled {cancelledSeats} Ticket(s) for {movie} at timeslot {timeslot}.")
+    elif cancelledSeats > availableSeats:
         print("Invalid Number of Tickets.")
     else:
         print(f"No ticket found booked for {movie} at timeslot {timeslot}.")
@@ -93,7 +93,7 @@ def main():
             print("3. Book Tickets")
             print("4. Cancel Tickets")
             print("5. Delete Shows")
-            print("7. Exit")
+            print("6. Exit")
             selectedChoice = input("Enter your choice: ").strip().lower()
             if selectedChoice == "1" or selectedChoice == "add shows":
                 addShows()
