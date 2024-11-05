@@ -37,7 +37,7 @@ def bookTickets():
         for i,row in movieShows[['Timeslot','Available Seats']].iterrows():
             print(f"-{i}. {row['Timeslot']} \t Available Seats: {row['Available Seats']} ")
         timeslot = input("Which timeslot do you want to book ticket for: ").strip().lower()
-        timeslotSelected = shows.loc[shows['Timeslot'] == timeslot]
+        timeslotSelected = movieShows.loc[shows['Timeslot'] == timeslot]
         if not timeslotSelected.empty:
             bookedSeats = int(input("How many Seats do you want to book ticket for: "))
             if not (timeslotSelected.loc[timeslotSelected['Available Seats'] > bookedSeats]).empty and availableSeats > bookedSeats:
