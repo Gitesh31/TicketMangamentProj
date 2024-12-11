@@ -11,17 +11,23 @@ try:
 except FileNotFoundError:
     shows = pd.DataFrame(columns=['Movies', 'Timeslot', 'Available Seats', 'Total Seats'])
     shows.to_csv("shows.csv", index=False)
-    customers = pd.DataFrame(columns=['Name', 'Movie', 'Timeslot', 'Seats Booked'])
+    customers = pd.DataFrame(columns=['Name', 'Movie', 'Timeslot', 'Seats Booked','Number of Seats'])
     customers.to_csv("customers.csv", index=False)
-    seats = pd.DataFrame(index=['A','B','C','D'],columns=np.arange(1,11))
+    seats = pd.DataFrame(index=['A', 'B', 'C', 'D'], columns=np.arange(1, 11))
     seats.loc[:] = 0
     seats.to_csv("seats.csv", index=False)
 
 totalSeats = seats.size
 availableSeats = totalSeats
 
+def customer_booked_seat_countFn(customer):
+    global customers
+    customer_records = customers[customers["Name"] == customer]
+    customer_booked_seatsCount = sum(len(seat.split(",")) for seat in customer_records["Seats Booked"])
+    return customer_booked_seatsCount
+
+
 def bookSeats(row,column):
-    global seats
     if seats.loc[row,column] == 0:
         seats.loc[row,column] = 1
         print(f"Seat is booked for seat number \'{row}{column}\'.")
@@ -38,6 +44,7 @@ def addShows():
     shows.loc[len(shows)] = [movie,timeslot,availableSeats,totalSeats]
     shows.to_csv("shows.csv",index=False)
     print(f"Show for {movie} at timeslot {timeslot} is added.")
+
 def showData():
     if shows.empty == True:
         print("No Shows Available.")
@@ -45,7 +52,6 @@ def showData():
         print(f"Available Shows:\n{shows}")
         print(customers)
 
-# Seat Count
 # Unique seats Df for each movie and timeslot
 # Cancelling Tickets
 
@@ -53,6 +59,7 @@ def bookShows():
     global shows
     global customers
     global seats
+    global totalSeats
     global availableSeats
     seats.index = ['A','B','C','D']
     cName = input("Enter Name of Customer: ").strip().lower()
@@ -67,11 +74,11 @@ def bookShows():
         customersSelectedShow = customers.loc[(customers['Name'] == cName) & (customers['Movie'] == movie)
                                               & (customers['Timeslot'] == timeslot)]
         if not timeslotSelected.empty:
+            print(customersSelectedShow)
             print(customersSelectedShow.empty)
             print(seats)
             bookedSeat = input("Enter Seat Number that you want to book: ").strip().upper()
             bookedSeatLocation = list(bookedSeat)
-            print(bookedSeatLocation)
             try:
                 bookSeats(bookedSeatLocation[0], bookedSeatLocation[1])
             except KeyError:
@@ -80,13 +87,21 @@ def bookShows():
             if not customersSelectedShow.empty:
                 selectedShowIndex = customersSelectedShow.index[0]
                 print(selectedShowIndex)
+                customer_booked_seat_count = customer_booked_seat_countFn(cName)
                 CustomerBookedSeats = customers.at[selectedShowIndex, "Seats Booked"]
-                customers.at[selectedShowIndex, "Seats Booked"] = f"{CustomerBookedSeats},{','.join(bookedSeat)}"
+                customers.at[selectedShowIndex, "Seats Booked"] = f"{CustomerBookedSeats},{bookedSeat}"
+                customers.at[selectedShowIndex,"Number of Seats"] = customer_booked_seat_count
                 customers.to_csv("customers.csv", index=False)
             else:
-                newCustomer = {"Name": cName, "Movie": movie, "Timeslot": timeslot, "Seats Booked": ','.join(bookedSeat)}
+                customer_booked_seat_count = 1
+                newCustomer = {"Name": cName, "Movie": movie, "Timeslot": timeslot, "Seats Booked":bookedSeat,
+                               "Number of Seats": customer_booked_seat_count}
                 customers = pd.concat([customers, pd.DataFrame([newCustomer])], ignore_index=True)
                 customers.to_csv("customers.csv", index=False)
+            availableSeats = totalSeats
+            customer_booked_seats_total = seats.values.sum()
+            availableSeats = availableSeats - customer_booked_seats_total
+            shows.loc[(shows['Movies'] == movie) & (shows['Timeslot'] == timeslot), 'Available Seats'] = availableSeats
         else:
             print(f"Selected timeslot {timeslot} for {movie} is currently not available.")
     else:
