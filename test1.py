@@ -20,14 +20,16 @@ except FileNotFoundError:
 totalSeats = seats.size
 availableSeats = totalSeats
 
-def customer_booked_seat_countFn(customer):
+def customer_booked_seat_countFn(cName,movie,timeslot):
     global customers
-    customer_records = customers[customers["Name"] == customer]
-    customer_booked_seatsCount = sum(len(seat.split(",")) for seat in customer_records["Seats Booked"])
+    customersSelectedShow = customers.loc[(customers['Name'] == cName) & (customers['Movie'] == movie)
+                                          & (customers['Timeslot'] == timeslot)]
+    customer_booked_seatsCount = sum(len(seat.split(",")) for seat in customersSelectedShow["Seats Booked"])
     return customer_booked_seatsCount
 
 
 def bookSeats(row,column):
+    global seats
     if seats.loc[row,column] == 0:
         seats.loc[row,column] = 1
         print(f"Seat is booked for seat number \'{row}{column}\'.")
@@ -87,7 +89,8 @@ def bookShows():
             if not customersSelectedShow.empty:
                 selectedShowIndex = customersSelectedShow.index[0]
                 print(selectedShowIndex)
-                customer_booked_seat_count = customer_booked_seat_countFn(cName)
+                customer_booked_seat_count = customer_booked_seat_countFn(cName,movie,timeslot) + 1
+                print(customer_booked_seat_count)
                 CustomerBookedSeats = customers.at[selectedShowIndex, "Seats Booked"]
                 customers.at[selectedShowIndex, "Seats Booked"] = f"{CustomerBookedSeats},{bookedSeat}"
                 customers.at[selectedShowIndex,"Number of Seats"] = customer_booked_seat_count
@@ -108,6 +111,7 @@ def bookShows():
         print(f"Sorry {movie} is currently not available.")
 
 
+# WIP
 def cancelTickets():
     global shows
     global availableSeats
