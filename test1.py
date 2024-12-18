@@ -224,13 +224,21 @@ def plotGraphs():
         print("4. Daily Revenue")
         ch = input("Enter Choice: ").strip().lower()
         if ch == '1' or ch == 'revenue by movie':
-            print("Revenue by Movie:")
             merged_df['Revenue'] = merged_df['Number of Seats'] * merged_df['Ticket Price']
+            merged_df['Normalized Revenue'] = merged_df.groupby('Movie')['Revenue'].transform(lambda x: x/x.sum())
             movie_revenue = merged_df.groupby('Movie')['Revenue'].sum()
+            normalized_movie_revenue = merged_df.groupby('Movie')['Normalized Revenue'].sum()
             plt.figure(figsize=(10, 6))
             cmap = mpl.colormaps['Pastel1']
-            movie_revenue.plot(kind='bar', color=cmap(range(len(movie_revenue))))
-            plt.title('Revenue by Movie', fontsize=16, color='#333333')
+            ch2 = input("1. Raw Revenue Graph\n2. Normalized Revenue Graph\nEnter your Choice: ")
+            if ch2 == '1' or ch == 'raw revenue graph':
+                plt.bar(movie_revenue.index, movie_revenue.values, color=cmap(range(len(movie_revenue))))
+            elif ch2 == '2' or ch == 'normalized revenue graph':
+                plt.bar(normalized_movie_revenue.index, normalized_movie_revenue.values, color=cmap(range(len(movie_revenue))))
+            else:
+                print("Invalid Choice.")
+                main()
+            print("Revenue by Movie:")
             plt.xlabel('Movie', fontsize=12, color='#333333')
             plt.ylabel('Revenue', fontsize=12, color='#333333')
             plt.xticks(rotation=45, color='#333333')
@@ -267,7 +275,7 @@ def plotGraphs():
                 return
             movie_data.loc[:, 'Revenue'] = movie_data['Number of Seats'] * movie_data['Ticket Price']
             plt.figure(figsize=(10, 6))
-            movie_data.plot(x='Timeslot', y='Revenue', kind='line', marker='o')
+            movie_data.plot(x='Timeslot', y='Revenue', kind='line', marker='o',color = 'c')
             plt.title(f'Revenue for {movie}', fontsize=16, color='#333333')
             plt.xlabel('Timeslot', fontsize=12, color='#333333')
             plt.ylabel('Revenue', fontsize=12, color='#333333')
@@ -286,7 +294,7 @@ def plotGraphs():
             merged_df['Revenue'] = merged_df['Number of Seats'] * merged_df['Ticket Price']
             dailyRevenue = merged_df.groupby('Date')['Revenue'].sum()
             plt.figure(figsize=(12, 6))
-            plt.plot(dailyRevenue.index, dailyRevenue.values, color= 'chartreuse')
+            plt.plot(dailyRevenue.index, dailyRevenue.values, color= 'lime')
             plt.title('Daily Revenue', fontsize=16, color='#333333')
             plt.xlabel('Date', fontsize=12, color='#333333')
             plt.ylabel('Revenue', fontsize=12, color='#333333')
