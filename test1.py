@@ -20,17 +20,34 @@ except FileNotFoundError:
     customers.to_csv("customers.csv", index=False)
 
 def timeslot_formatting(date_str,time_str):
+    date_str = date_str.strip().replace("/", "-")
+    time_str = time_str.strip()
+    time_formats = ['%H:%M', '%H-%M']
+    date_formats = ['%d-%m-%Y', '%Y-%m-%d']
+    formatted_date = None
+    for fmt in date_formats:
         try:
-            date_obj = datetime.datetime.strptime(date_str, '%d-%m-%Y')
-            time_obj = datetime.datetime.strptime(time_str, '%H:%M')
-
+            date_obj = datetime.datetime.strptime(date_str, fmt)
             formatted_date = date_obj.strftime('%d-%m-%Y')
-            formatted_time = time_obj.strftime('%H:%M')
-            timeslot = f"{formatted_date} {formatted_time}"
-            return timeslot
+            break
         except ValueError:
-            print("Invalid Format.")
-            main()
+            continue
+    if not formatted_date:
+        print("Invalid Date Format.\nCorrect Formats:\n1.DD-MM-YYYY\n2.YYYY-MM-DD\n")
+        main()
+    formatted_time = None
+    for fmt in time_formats:
+        try:
+            time_obj = datetime.datetime.strptime(time_str, fmt)
+            formatted_time = time_obj.strftime('%H:%M')
+            break
+        except ValueError:
+            continue
+    if not formatted_time:
+        print('Invalid Time Format.\nCorrect Formats:\n1. HH:MM\n2. HH-MM\n')
+        main()
+    timeslot = f"{formatted_date} {formatted_time}"
+    return timeslot
 
 def show_init(movie, timeslot,rows = np.random.randint(4,10),columns = np.random.randint(4,10)):
     filename = f"{movie}_{timeslot}_seats".replace(' ','_').replace(':','-')
@@ -75,8 +92,8 @@ def cancelSeats(movie,timeslot,row, column):
 def addShows():
     global shows
     movie = input("Enter the movie name: ").strip().lower()
-    date_str = input("Enter the date of movie airing (DD-MM-YYYY) : ").strip().lower()
-    time_str = input("Enter the time of movie airing (HH:MM): ").strip().lower()
+    date_str = input("Enter the date of movie airing (DD-MM-YYYY or YYYY-MM-DD): ")
+    time_str = input("Enter the time of movie airing (HH:MM or HH-MM): ")
     timeslot = timeslot_formatting(date_str,time_str)
     ticket_price = input("Enter Ticket Price: ")
     ticket_price = int(ticket_price)
@@ -90,7 +107,7 @@ def addShows():
 def showData():
     global shows
     global customers
-    if shows.empty == True:
+    if shows.empty:
         print("No Shows Available.")
     elif shows.empty == False and customers.empty == True:
         print(f"Available Shows:\n{shows}")
@@ -157,7 +174,6 @@ def cancelTickets():
             movie = input("Which movie do you want to cancel tickets for: ").strip().lower()
             timeslot = input(f"Which timeslot of {movie} do you want to cancel: ").strip().lower()
             showSelected = shows.loc[(shows['Movie'] == movie) & (shows['Timeslot'] == timeslot)]
-
             if not showSelected.empty:
                 customersSelectedShow = customers.loc[(customers['Name'] == cName) & (customers['Movie'] == movie)
                                                       & (customers['Timeslot'] == timeslot)]
@@ -165,11 +181,9 @@ def cancelTickets():
                     selectedShowIndex = customersSelectedShow.index[0]
                     seatsBooked = customers.at[selectedShowIndex, "Seats Booked"]
                     bookedSeatsList = seatsBooked.split(",") if seatsBooked else []
-
                     if bookedSeatsList:
                         print(f"Your booked seats are: {', '.join(bookedSeatsList)}")
                         bookedSeat = input("Enter Seat Number that you want to cancel: ").strip().upper()
-
                         if bookedSeat in bookedSeatsList:
                             cancelSeats(movie,timeslot,bookedSeat[0],bookedSeat[1])
                             bookedSeatsList.remove(bookedSeat)
@@ -294,7 +308,7 @@ def plotGraphs():
             merged_df['Revenue'] = merged_df['Number of Seats'] * merged_df['Ticket Price']
             dailyRevenue = merged_df.groupby('Date')['Revenue'].sum()
             plt.figure(figsize=(12, 6))
-            plt.plot(dailyRevenue.index, dailyRevenue.values, color= 'lime')
+            plt.plot(dailyRevenue.index, dailyRevenue.values, color= 'lime',marker = 'o')
             plt.title('Daily Revenue', fontsize=16, color='#333333')
             plt.xlabel('Date', fontsize=12, color='#333333')
             plt.ylabel('Revenue', fontsize=12, color='#333333')
